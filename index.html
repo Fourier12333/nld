@@ -1,0 +1,181 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="NLD"/><title>NLD Épargne</title><style>*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}html,body{height:100%;background:#0A0E1A;color:#E8EDF7;font-family:-apple-system,sans-serif;overflow:hidden}#app{height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}#scr{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}#scr::-webkit-scrollbar{display:none}input{width:100%;background:#1A2540;border:1.5px solid #1E2D4A;border-radius:12px;padding:13px 14px;color:#E8EDF7;font-size:15px;outline:none;font-family:inherit;margin-bottom:10px;box-sizing:border-box}input::placeholder{color:#6B7A99}input:focus{border-color:#00C9A7}button{cursor:pointer;font-family:inherit;border:none}@keyframes monter{from{transform:translateY(100%)}to{transform:translateY(0)}}@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.ani{animation:fadein 0.3s ease both}</style></head><body><div id="app"><div id="scr"></div></div><div id="toast" style="position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(20px);background:#00C9A7;color:#0A0E1A;padding:10px 22px;border-radius:40px;font-weight:700;font-size:14px;opacity:0;transition:all 0.3s;z-index:200;white-space:nowrap"></div><script>
+const $=s=>document.querySelector(s);
+const id=()=>Math.random().toString(36).slice(2,9);
+const fmt=n=>new Intl.NumberFormat('fr-FR').format(Math.round(n))+' FCFA';
+const tj=()=>new Date().toISOString().slice(0,10);
+const EMOJIS=['💰','🎓','✈️','🏠','🚗','⚡','🎯','🏥','💼','📱','📚','🛍️','💻','🌍','🎵'];
+const COLS=['#3D7EFF','#00C9A7','#F5C542','#FF5A5F','#A855F7','#F97316','#06B6D4','#84CC16'];
+let CS=[],VIEW='home',SID=null,TAB='ap',MOD=null,mE='💰',mC='#3D7EFF',mN='',mO='',tT='depot',tM='',tN='';
+function load(){try{const s=localStorage.getItem('nld4');CS=s?JSON.parse(s):[];}catch{CS=[];}}
+function save(){try{localStorage.setItem('nld4',JSON.stringify(CS));}catch{}}
+function toast(m){const t=$('#toast');t.textContent=m;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2500);}
+function prog(p,c){return`<div style="background:#1E2D4A;border-radius:8px;height:7px;overflow:hidden"><div style="background:${c};height:7px;border-radius:8px;width:${Math.min(p,100)}%;transition:width 1s ease"></div></div>`;}
+function render(){
+  const sc=$('#scr');
+  if(VIEW==='home'){
+    const ts=CS.reduce((a,c)=>a+c.solde,0),to=CS.reduce((a,c)=>a+c.objectif,0),gp=to>0?Math.min(100,Math.round(ts/to*100)):0;
+    let cards=CS.map(c=>{
+      const p=c.objectif>0?Math.min(100,Math.round(c.solde/c.objectif*100)):0;
+      return`<div class="ani" onclick="ouv('${c.id}')" style="background:#131929;border:1px solid #1E2D4A;border-radius:20px;padding:18px;margin-bottom:14px;cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:46px;height:46px;border-radius:14px;background:${c.couleur}22;border:1.5px solid ${c.couleur}55;display:flex;align-items:center;justify-content:center;font-size:24px">${c.emoji}</div>
+            <div><div style="font-weight:700;font-size:16px">${c.nom}</div><div style="color:#6B7A99;font-size:12px">Objectif : ${fmt(c.objectif)}</div></div>
+          </div>
+          <div style="text-align:right"><div style="color:${c.couleur};font-weight:800;font-size:18px">${fmt(c.solde)}</div><div style="font-size:12px;color:${p>=100?'#00C9A7':'#6B7A99'}">${p}%</div></div>
+        </div>
+        ${prog(p,c.couleur)}
+        <div style="margin-top:7px;font-size:12px;color:${c.solde>=c.objectif?'#00C9A7':'#6B7A99'}">${c.solde>=c.objectif?'🎉 Objectif atteint !':'Reste '+fmt(c.objectif-c.solde)}</div>
+      </div>`;}).join('');
+    if(!CS.length)cards=`<div style="text-align:center;padding:60px 20px;color:#6B7A99"><div style="font-size:56px;margin-bottom:14px">💰</div><p style="font-size:15px">Créez votre première caisse !</p></div>`;
+    sc.innerHTML=`<div>
+      <div style="background:linear-gradient(160deg,#0D1B3E,#0A0E1A);border-bottom:1px solid #1E2D4A;padding:52px 20px 22px;text-align:center">
+        <div style="display:inline-flex;align-items:center;background:rgba(0,201,167,0.12);border:1px solid rgba(0,201,167,0.3);border-radius:20px;padding:5px 18px;letter-spacing:5px;font-size:14px;font-weight:800;color:#00C9A7;font-family:monospace;margin-bottom:16px">N · L · D</div>
+        <p style="color:#6B7A99;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">Épargne totale</p>
+        <h1 style="font-size:36px;font-weight:900;letter-spacing:-1px;margin:0 0 16px">${fmt(ts)}</h1>
+        ${prog(gp,'linear-gradient(90deg,#00C9A7,#3D7EFF)')}
+        <p style="color:#6B7A99;font-size:12px;margin-top:8px">${gp}% de ${fmt(to)} atteint</p>
+      </div>
+      <div style="padding:18px 16px 100px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <span style="font-size:18px;font-weight:800">Mes Caisses</span>
+          <button onclick="ouvrirMod('nouvelle')" style="background:linear-gradient(135deg,#00C9A7,#3D7EFF);border:none;border-radius:22px;padding:8px 20px;color:#fff;font-size:14px;font-weight:700">+ Nouvelle</button>
+        </div>
+        ${cards}
+      </div>
+    </div>`;
+  } else {
+    const c=CS.find(x=>x.id===SID);
+    if(!c){VIEW='home';render();return;}
+    const p=c.objectif>0?Math.min(100,Math.round(c.solde/c.objectif*100)):0;
+    const r=42,ci=2*Math.PI*r,da=p/100*ci;
+    const td=c.transactions.filter(t=>t.type==='depot').reduce((a,t)=>a+t.montant,0);
+    const tr2=c.transactions.filter(t=>t.type==='retrait').reduce((a,t)=>a+t.montant,0);
+    const txs=[...c.transactions].reverse().map(t=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#131929;border:1px solid #1E2D4A;border-radius:16px;padding:13px 14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:12px;background:${t.type==='depot'?'rgba(0,201,167,0.15)':'rgba(255,90,95,0.15)'};display:flex;align-items:center;justify-content:center;font-size:18px">${t.type==='depot'?'⬇️':'⬆️'}</div>
+          <div><div style="font-weight:600;font-size:14px">${t.note}</div><div style="color:#6B7A99;font-size:12px">${t.date}</div></div>
+        </div>
+        <div style="color:${t.type==='depot'?'#00C9A7':'#FF5A5F'};font-weight:800;font-size:16px">${t.type==='depot'?'+':'-'}${fmt(t.montant)}</div>
+      </div>`).join('')||`<p style="text-align:center;color:#6B7A99;padding:40px 0;font-size:14px">Aucune opération</p>`;
+    const bars=c.transactions.filter(t=>t.type==='depot').slice(-6);
+    const maxB=bars.length?Math.max(...bars.map(t=>t.montant)):1;
+    const barsHTML=bars.length?`<div style="display:flex;align-items:flex-end;gap:8px;height:80px">${bars.map((t,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;background:${c.couleur};border-radius:6px;height:${Math.max(6,Math.round(t.montant/maxB*68))}px;opacity:${(0.5+i/bars.length*0.5).toFixed(2)}"></div><span style="font-size:9px;color:#6B7A99">${t.date.slice(5)}</span></div>`).join('')}</div>`:'<p style="color:#6B7A99;font-size:13px;text-align:center;padding:20px 0">Aucun dépôt</p>';
+    sc.innerHTML=`<div>
+      <div style="background:linear-gradient(160deg,${c.couleur}20,#0A0E1A 65%);border-bottom:1px solid #1E2D4A;padding:52px 20px 20px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <button onclick="VIEW='home';render()" style="background:none;border:none;color:#6B7A99;font-size:32px;cursor:pointer;line-height:1">‹</button>
+          <span style="font-size:30px">${c.emoji}</span>
+          <div><div style="font-weight:800;font-size:20px">${c.nom}</div><div style="color:#6B7A99;font-size:13px">Objectif : ${fmt(c.objectif)}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px">
+          <div style="position:relative;flex-shrink:0">
+            <svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="#1E2D4A" stroke-width="9"/><circle cx="50" cy="50" r="${r}" fill="none" stroke="${c.couleur}" stroke-width="9" stroke-dasharray="${da.toFixed(1)} ${ci.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 50 50)" style="transition:stroke-dasharray 1s ease"/></svg>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:${c.couleur};font-weight:900;font-size:20px">${p}%</div>
+          </div>
+          <div>
+            <div style="color:#6B7A99;font-size:13px;margin-bottom:4px">Solde actuel</div>
+            <div style="font-size:28px;font-weight:900;letter-spacing:-1px">${fmt(c.solde)}</div>
+            <div style="font-size:13px;color:${c.solde<c.objectif?'#6B7A99':'#00C9A7'};margin-top:4px">${c.solde<c.objectif?'Encore '+fmt(c.objectif-c.solde)+' pour l\'objectif':'🎉 Objectif atteint !'}</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;background:#1A2540;border-radius:14px;padding:4px;margin:14px 16px">
+        <button onclick="TAB='ap';render()" style="flex:1;padding:10px 0;border-radius:11px;border:none;font-size:14px;font-weight:700;cursor:pointer;background:${TAB==='ap'?c.couleur:'transparent'};color:${TAB==='ap'?'#fff':'#6B7A99'}">📊 Aperçu</button>
+        <button onclick="TAB='tx';render()" style="flex:1;padding:10px 0;border-radius:11px;border:none;font-size:14px;font-weight:700;cursor:pointer;background:${TAB==='tx'?c.couleur:'transparent'};color:${TAB==='tx'?'#fff':'#6B7A99'}">📋 Historique</button>
+      </div>
+      <div style="padding:0 16px 100px">
+        ${TAB==='ap'?`
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div style="background:#131929;border:1px solid #1E2D4A;border-radius:14px;padding:14px"><div style="color:#6B7A99;font-size:11px;margin-bottom:5px">Total dépôts</div><div style="color:#00C9A7;font-weight:800;font-size:16px">${fmt(td)}</div></div>
+            <div style="background:#131929;border:1px solid #1E2D4A;border-radius:14px;padding:14px"><div style="color:#6B7A99;font-size:11px;margin-bottom:5px">Total retraits</div><div style="color:#FF5A5F;font-weight:800;font-size:16px">${fmt(tr2)}</div></div>
+            <div style="background:#131929;border:1px solid #1E2D4A;border-radius:14px;padding:14px"><div style="color:#6B7A99;font-size:11px;margin-bottom:5px">Opérations</div><div style="color:#3D7EFF;font-weight:800;font-size:16px">${c.transactions.length}</div></div>
+            <div style="background:#131929;border:1px solid #1E2D4A;border-radius:14px;padding:14px"><div style="color:#6B7A99;font-size:11px;margin-bottom:5px">Reste</div><div style="color:#F5C542;font-weight:800;font-size:16px">${fmt(Math.max(0,c.objectif-c.solde))}</div></div>
+          </div>
+          <div style="background:#131929;border:1px solid #1E2D4A;border-radius:16px;padding:16px;margin-bottom:14px">
+            <div style="color:#6B7A99;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px">Évolution</div>
+            ${barsHTML}
+          </div>
+          <button onclick="ouvrirMod('suppr')" style="width:100%;background:rgba(255,90,95,0.1);border:1px solid rgba(255,90,95,0.3);border-radius:14px;padding:13px 0;color:#FF5A5F;font-weight:700;font-size:14px;cursor:pointer">🗑 Supprimer cette caisse</button>
+        `:`
+          <button onclick="ouvrirMod('tx')" style="width:100%;background:linear-gradient(135deg,#00C9A7,#3D7EFF);border:none;border-radius:14px;padding:14px 0;color:#fff;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:14px">+ Ajouter une opération</button>
+          ${txs}
+        `}
+      </div>
+    </div>`;
+  }
+  // Modals
+  const old=$('#modal');if(old)old.remove();
+  if(!MOD)return;
+  const ov=document.createElement('div');ov.id='modal';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99;display:flex;align-items:flex-end';
+  ov.addEventListener('click',e=>{if(e.target===ov){MOD=null;render();}});
+  let html='';
+  if(MOD==='nouvelle'){
+    html=`<div style="background:#131929;border-radius:28px 28px 0 0;padding:20px 20px 40px;width:100%;animation:monter 0.35s cubic-bezier(.34,1.2,.64,1)">
+      <div style="width:44px;height:5px;background:#1E2D4A;border-radius:4px;margin:0 auto 20px"></div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:18px">✨ Nouvelle Caisse</div>
+      <div style="color:#6B7A99;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Icône</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${EMOJIS.map(e=>`<button onclick="mE='${e}';render()" style="width:44px;height:44px;border-radius:13px;font-size:24px;cursor:pointer;background:${mE===e?'rgba(0,201,167,0.2)':'#1A2540'};border:${mE===e?'2px solid #00C9A7':'1px solid #1E2D4A'}">${e}</button>`).join('')}</div>
+      <div style="color:#6B7A99;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Couleur</div>
+      <div style="display:flex;gap:10px;margin-bottom:18px">${COLS.map(c=>`<button onclick="mC='${c}';render()" style="width:32px;height:32px;border-radius:50%;background:${c};border:${mC===c?'3px solid #fff':'none'};transform:${mC===c?'scale(1.2)':'scale(1)'};transition:transform 0.15s;cursor:pointer"></button>`).join('')}</div>
+      <input id="mn" value="${mN}" oninput="mN=this.value" placeholder="Nom de la caisse"/>
+      <input id="mo" type="number" value="${mO}" oninput="mO=this.value" placeholder="Objectif en FCFA"/>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button onclick="MOD=null;render()" style="flex:1;padding:13px 0;background:#1A2540;border:1px solid #1E2D4A;border-radius:14px;color:#6B7A99;font-weight:700;font-size:14px">Annuler</button>
+        <button onclick="creer()" style="flex:2;padding:13px 0;background:linear-gradient(135deg,#00C9A7,#3D7EFF);border:none;border-radius:14px;color:#fff;font-weight:700;font-size:15px">Créer</button>
+      </div>
+    </div>`;
+  } else if(MOD==='tx'){
+    const c=CS.find(x=>x.id===SID);
+    html=`<div style="background:#131929;border-radius:28px 28px 0 0;padding:20px 20px 40px;width:100%;animation:monter 0.35s cubic-bezier(.34,1.2,.64,1)">
+      <div style="width:44px;height:5px;background:#1E2D4A;border-radius:4px;margin:0 auto 20px"></div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:16px">💳 Nouvelle Opération</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button onclick="tT='depot';render()" style="flex:1;padding:12px 0;border-radius:13px;border:none;font-weight:700;font-size:14px;cursor:pointer;background:${tT==='depot'?'#00C9A7':'#1A2540'};color:${tT==='depot'?'#fff':'#6B7A99'}">💰 Dépôt</button>
+        <button onclick="tT='retrait';render()" style="flex:1;padding:12px 0;border-radius:13px;border:none;font-weight:700;font-size:14px;cursor:pointer;background:${tT==='retrait'?'#FF5A5F':'#1A2540'};color:${tT==='retrait'?'#fff':'#6B7A99'}">📤 Retrait</button>
+      </div>
+      <input id="tm" type="number" value="${tM}" oninput="tM=this.value" placeholder="Montant en FCFA"/>
+      <input id="tn" value="${tN}" oninput="tN=this.value" placeholder="Note (ex: Salaire, Bourse...)"/>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button onclick="MOD=null;render()" style="flex:1;padding:13px 0;background:#1A2540;border:1px solid #1E2D4A;border-radius:14px;color:#6B7A99;font-weight:700">Annuler</button>
+        <button onclick="ajouterTx()" style="flex:2;padding:13px 0;background:${tT==='depot'?'#00C9A7':'#FF5A5F'};border:none;border-radius:14px;color:#fff;font-weight:700;font-size:15px">Enregistrer</button>
+      </div>
+    </div>`;
+  } else if(MOD==='suppr'){
+    const c=CS.find(x=>x.id===SID);
+    html=`<div style="background:#131929;border-radius:28px 28px 0 0;padding:20px 20px 40px;width:100%;animation:monter 0.35s cubic-bezier(.34,1.2,.64,1)">
+      <div style="width:44px;height:5px;background:#1E2D4A;border-radius:4px;margin:0 auto 20px"></div>
+      <div style="text-align:center;padding:10px 0 20px">
+        <div style="font-size:44px;margin-bottom:12px">⚠️</div>
+        <div style="font-size:17px;font-weight:800;margin-bottom:8px">Supprimer cette caisse ?</div>
+        <div style="color:#6B7A99;font-size:14px">La caisse <strong style="color:#E8EDF7">${c?.nom}</strong> sera supprimée définitivement.</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="MOD=null;render()" style="flex:1;padding:13px 0;background:#1A2540;border:1px solid #1E2D4A;border-radius:14px;color:#6B7A99;font-weight:700">Annuler</button>
+        <button onclick="suppr()" style="flex:1;padding:13px 0;background:#FF5A5F;border:none;border-radius:14px;color:#fff;font-weight:700;font-size:14px">Supprimer</button>
+      </div>
+    </div>`;
+  }
+  ov.innerHTML=html;document.body.appendChild(ov);
+}
+function ouv(i){SID=i;TAB='ap';VIEW='detail';$('#scr').scrollTop=0;render();}
+function ouvrirMod(m){MOD=m;render();}
+function creer(){
+  if(!mN.trim()){toast('❌ Entrez un nom');return;}
+  const o=parseInt(mO);
+  if(!o||o<=0){toast('❌ Objectif invalide');return;}
+  CS.push({id:id(),nom:mN.trim(),objectif:o,solde:0,couleur:mC,emoji:mE,transactions:[]});
+  save();mN='';mO='';MOD=null;render();toast('✅ Caisse créée !');
+}
+function ajouterTx(){
+  const m=parseInt(tM);
+  if(!m||m<=0){toast('❌ Montant invalide');return;}
+  const n=tN.trim()||(tT==='depot'?'Dépôt':'Retrait');
+  CS=CS.map(c=>{if(c.id!==SID)return c;const d=tT==='depot'?m:-m;return{...c,solde:Math.max(0,c.solde+d),transactions:[...c.transactions,{id:id(),type:tT,montant:m,note:n,date:tj()}]};});
+  save();tM='';tN='';MOD=null;render();toast(tT==='depot'?'✅ Dépôt enregistré !':'✅ Retrait enregistré');
+}
+function suppr(){CS=CS.filter(c=>c.id!==SID);save();VIEW='home';SID=null;MOD=null;render();toast('Caisse supprimée');}
+load();render();
+</script></body></html>
